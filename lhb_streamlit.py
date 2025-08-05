@@ -179,7 +179,7 @@ def query_stock_data(stock_code, stock_name, data_source):
         return None, None, None
 
 def display_stock_info(k_data, stock_code, stock_name, data_source):
-    """显示股票信息"""
+    """股票信息"""
     if k_data is not None and not k_data.empty:
         current_price = k_data.iloc[-1]['price']
         current_change = k_data.iloc[-1]['change']
@@ -300,7 +300,8 @@ def handle_lhb_query(stock_code, short_name):
                         result = MODULES['lhb']['find_lhb'](target_code)
                         if result is not None and (isinstance(result, pd.DataFrame) and not result.empty or 
                                                   isinstance(result, (list, dict)) and result):
-                            st.success("获取龙虎榜详细数据成功!")
+                            stock_code = target_code
+                            st.success(f"获取{stock_code}龙虎榜数据成功!")
                             st.dataframe(result if isinstance(result, pd.DataFrame) else st.json(result))
                         else:
                             st.info("未找到相关龙虎榜数据")
