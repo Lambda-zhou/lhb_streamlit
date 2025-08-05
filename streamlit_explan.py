@@ -164,4 +164,32 @@ def show_system_status(import_status):
                 for module in failed_modules:
                     st.error(f"❌ {module}")
             else:
-                st.success("所有模块加载成功！") 
+                st.success("所有模块加载成功！")
+
+def show_ui_components(import_status, show_help=False, show_status=False, show_welcome=False):
+    """显示UI组件"""
+    import streamlit as st
+    
+    # 显示欢迎信息
+    if show_welcome:
+        show_welcome_message()
+    
+    # 显示快速帮助
+    if show_help:
+        show_quick_help()
+    
+    # 显示系统状态
+    if show_status:
+        show_system_status(import_status)
+
+def show_fallback_ui(import_status, show_help=False, show_status=False):
+    """显示备用UI组件"""
+    import streamlit as st
+    
+    # 显示快速帮助
+    if show_help:
+        show_quick_help()
+    
+    # 显示系统状态
+    if show_status:
+        show_system_status(import_status) 
