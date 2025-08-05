@@ -10,7 +10,7 @@ report_date = get_last_trading_day()  # 使用最近的交易日
 def find_lhb(stock_code):
     stock_code = stock_code
     warnings.filterwarnings('ignore', category=RuntimeWarning, module='pandas')
-    need_columns = ['stock_code', 'a_net_amount', 'a_buy_amount', 'a_sell_amount', 'operate_name']
+    need_columns = ['a_net_amount', 'a_buy_amount', 'a_sell_amount', 'operate_name']
     if 'lh' not in find_lhb.__dict__:
         find_lhb.lh = adata.sentiment.hot.list_a_list_daily(report_date)
     
