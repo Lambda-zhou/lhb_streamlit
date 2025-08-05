@@ -10,12 +10,12 @@ report_date = get_last_trading_day()  # 使用最近的交易日
 def find_lhb(stock_code):
     stock_code = stock_code
     warnings.filterwarnings('ignore', category=RuntimeWarning, module='pandas')
+    need_columns = ['stock_code', 'a_net_amount', 'a_buy_amount', 'a_sell_amount', 'operate_name']
     if 'lh' not in find_lhb.__dict__:
         find_lhb.lh = adata.sentiment.hot.list_a_list_daily(report_date)
     
     # 检查是否为股票代码
     if stock_code in find_lhb.lh['stock_code'].values:
-        need_columns = ['stock_code',  'a_buy_amount', 'a_sell_amount', 'operate_name']
         lhb = adata.sentiment.hot.get_a_list_info(stock_code, report_date)[need_columns]
         return lhb
     # 检查是否为股票名称
@@ -24,7 +24,6 @@ def find_lhb(stock_code):
         stock_row = find_lhb.lh[find_lhb.lh['short_name'] == stock_code]
         if not stock_row.empty:
             actual_stock_code = stock_row['stock_code'].iloc[0]
-            need_columns = ['stock_code',  'a_buy_amount', 'a_sell_amount', 'operate_name']
             lhb = adata.sentiment.hot.get_a_list_info(actual_stock_code, report_date)[need_columns]
             return lhb
     else:
