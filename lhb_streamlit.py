@@ -540,7 +540,7 @@ def main():
         )
         
         # 项目介绍
-        if IMPORT_EXPLAN and st.sidebar.checkbox("显示项目介绍", value=True):
+        if IMPORT_EXPLAN and st.sidebar.checkbox("显示项目介绍", value=False):
             explan.show_explan()
     else:
         # 当侧边栏隐藏时，使用下拉菜单
