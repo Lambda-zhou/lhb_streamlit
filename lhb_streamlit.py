@@ -300,8 +300,7 @@ def handle_lhb_query(stock_code, short_name):
                         result = MODULES['lhb']['find_lhb'](target_code)
                         if result is not None and (isinstance(result, pd.DataFrame) and not result.empty or 
                                                   isinstance(result, (list, dict)) and result):
-                            stock_code = target_code
-                            st.success(f"获取{stock_code}龙虎榜数据成功!")
+                            st.success(f"获取{target_code}龙虎榜数据成功!")
                             st.dataframe(result if isinstance(result, pd.DataFrame) else st.json(result))
                         else:
                             st.info("未找到相关龙虎榜数据")
