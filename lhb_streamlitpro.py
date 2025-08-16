@@ -233,6 +233,18 @@ def save_kline_image(df, stock_code, stock_name=""):
         st.error(f"保存K线图失败: {str(e)}")
         return None
 
+def save_kline_image_for_history(df, stock_code, stock_name=""):
+    """为历史记录保存K线图（使用stock_code命名）"""
+    try:
+        fig = MODULES['k_line']['draw_kline'](df, stock_code)
+        filename = f"image/{stock_code}.png"
+        fig.savefig(filename, dpi=300, bbox_inches='tight')
+        plt.close(fig)
+        return filename
+    except Exception as e:
+        st.error(f"保存K线图失败: {str(e)}")
+        return None
+
 def get_latest_kline_image(stock_code):
     """获取最新的K线图"""
     try:
@@ -334,6 +346,9 @@ def handle_stock_query(stock_code, short_name):
                     if k_data is not None:
                         save_kline_image(k_data, final_code, final_stock_name)
                         
+                        # 保存K线图到历史记录
+                        save_kline_image_for_history(k_data, final_code, final_stock_name)
+                        
                         # 保存到持久化存储
                         metadata = {
                             "stock_code": final_code,
@@ -363,6 +378,9 @@ def handle_stock_query(stock_code, short_name):
                         k_data, final_stock_name, final_code = query_stock_data(found_code, short_name, data_source)
                         if k_data is not None:
                             save_kline_image(k_data, final_code, final_stock_name)
+                            
+                            # 保存K线图到历史记录
+                            save_kline_image_for_history(k_data, final_code, final_stock_name)
                             
                             # 保存到持久化存储
                             metadata = {
@@ -551,6 +569,9 @@ def handle_ths_hot():
                         stock_name = get_stock_name_by_code(hot_stock_code)
                         k_data = get_stock_data_cached(hot_stock_code)
                         if k_data is not None and not k_data.empty:
+                            # 保存K线图到历史记录
+                            save_kline_image_for_history(k_data, hot_stock_code, stock_name)
+                            
                             # 保存到持久化存储
                             metadata = {
                                 "stock_code": hot_stock_code,
@@ -757,15 +778,20 @@ def show_history_panel():
             title = f"{operation_type} - {timestamp}"
         
         with st.expander(title):
-            # 显示元数据
-            st.subheader("📋 操作信息")
-            st.json(entry['metadata'])
+            # 检查是否为K线图相关操作
+            if operation_type in ['stock_query', 'hot_stock_kline']:
+                metadata = entry.get('metadata', {})
+                stock_code = metadata.get('stock_code')
+                if stock_code:
+                    # 尝试显示K线图
+                    kline_image_path = f"image/{stock_code}.png"
+                    if os.path.exists(kline_image_path):
+                        st.image(kline_image_path, caption=f"{metadata.get('stock_name', 'N/A')} ({stock_code}) K线图", use_column_width=True)
+                    else:
+                        st.warning("K线图文件不存在")
             
-            # 直接显示历史数据（如果存在）
+            # 显示历史数据（如果存在且不是K线图操作）
             if entry.get('data_file'):
-                st.markdown("---")
-                st.subheader("📊 历史数据")
-                
                 data = data_persistence.load_operation_data(entry['data_file'])
                 if data is not None:
                     if isinstance(data, pd.DataFrame):
