@@ -262,10 +262,39 @@ def get_stock_name_from_db(stock_code):
         return None
     
     try:
-        result = MODULES['db_search']['database_search_code_draw'](stock_code)
+        # 使用新增的不绘图函数
+        from db_search_draw import database_get_stock_name
+        result = database_get_stock_name(stock_code)
         return result if result else None
     except Exception as e:
         st.error(f"数据库查询股票名称失败: {str(e)}")
+        return None
+
+def get_stock_code_from_db(short_name):
+    """从数据库获取股票代码"""
+    if not IMPORT_STATUS.get('db_search', False):
+        return None
+    
+    try:
+        # 使用新增的不绘图函数
+        from db_search_draw import database_get_stock_code
+        result = database_get_stock_code(short_name)
+        return result if result else None
+    except Exception as e:
+        st.error(f"数据库查询股票代码失败: {str(e)}")
+        return None
+
+def fuzzy_search_stocks_from_db(keyword):
+    """从数据库模糊查询股票"""
+    if not IMPORT_STATUS.get('db_connect', False):
+        return None
+    
+    try:
+        from db_search_draw import database_fuzzy_search
+        result = database_fuzzy_search(keyword)
+        return result if result is not None else None
+    except Exception as e:
+        st.error(f"数据库模糊查询失败: {str(e)}")
         return None
 
 def query_stock_data(stock_code, stock_name, data_source):
@@ -329,7 +358,7 @@ def handle_stock_query(stock_code, short_name):
     # 数据源选择
     data_source = st.radio(
         "选择查询方式",
-        ["API查询", "数据库查询"],
+        ["API查询", "数据库查询", "数据库模糊查询"],
         horizontal=True
     )
     
@@ -373,7 +402,31 @@ def handle_stock_query(stock_code, short_name):
         if st.button("通过股票名称查询", type="primary", disabled=not short_name):
             if short_name:
                 with st.spinner("正在查询股票数据..."):
-                    found_code = get_stock_code_by_name(short_name)
+                    # 根据数据源选择不同的查询方式
+                    if data_source == "数据库查询":
+                        found_code = get_stock_code_from_db(short_name)
+                    elif data_source == "数据库模糊查询":
+                        # 模糊查询处理
+                        fuzzy_results = fuzzy_search_stocks_from_db(short_name)
+                        if fuzzy_results is not None and not fuzzy_results.empty:
+                            st.success(f"找到 {len(fuzzy_results)} 只相关股票")
+                            st.dataframe(fuzzy_results, use_container_width=True)
+                            
+                            # 保存模糊查询结果到历史记录
+                            metadata = {
+                                "keyword": short_name,
+                                "results_count": len(fuzzy_results),
+                                "query_type": "fuzzy_search"
+                            }
+                            data_persistence.save_operation_history("fuzzy_search", fuzzy_results, metadata)
+                            st.info("模糊查询结果已保存到历史记录")
+                            return
+                        else:
+                            st.info(f"未找到包含'{short_name}'的股票")
+                            return
+                    else:
+                        found_code = get_stock_code_by_name(short_name)
+                    
                     if found_code:
                         k_data, final_stock_name, final_code = query_stock_data(found_code, short_name, data_source)
                         if k_data is not None:
