@@ -40,3 +40,40 @@ def database_search_code_draw(stock_code):
     else:
         print(f"未找到股票: {stock_code}")
         return None
+
+
+def database_fuzzy_search(keyword):
+    """数据库模糊查询股票"""
+    engine = db_connect()  # 获取数据库引擎
+    query = "SELECT stock_code, short_name FROM all_stock WHERE short_name LIKE %s"
+    result = pd.read_sql_query(query, engine, params=(f'%{keyword}%',))
+    if not result.empty:
+        print(f"找到 {len(result)} 只包含'{keyword}'的股票:")
+        for _, row in result.iterrows():
+            print(f"  {row['short_name']} ({row['stock_code']})")
+        return result
+    else:
+        print(f"未找到包含'{keyword}'的股票")
+        return None
+
+
+def database_get_stock_name(stock_code):
+    """从数据库获取股票名称（不绘图）"""
+    engine = db_connect()  # 获取数据库引擎
+    query = "SELECT stock_code, short_name FROM all_stock WHERE stock_code = %s"
+    find_code = pd.read_sql_query(query, engine, params=(stock_code,))
+    if not find_code.empty:
+        return find_code.iloc[0]['short_name']
+    else:
+        return None
+
+
+def database_get_stock_code(short_name):
+    """从数据库获取股票代码（不绘图）"""
+    engine = db_connect()  # 获取数据库引擎
+    query = "SELECT stock_code, short_name FROM all_stock WHERE short_name = %s"
+    find_code = pd.read_sql_query(query, engine, params=(short_name,))
+    if not find_code.empty:
+        return find_code.iloc[0]['stock_code']
+    else:
+        return None
